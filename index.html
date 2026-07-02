@@ -1,0 +1,259 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Consulta de Muebles</title>
+
+<style>
+
+body{
+    font-family:Arial, sans-serif;
+    background:#f4f4f4;
+    padding:20px;
+    max-width:550px;
+    margin:auto;
+}
+
+h2{
+    text-align:center;
+    color:#d71920;
+}
+
+select{
+    width:100%;
+    padding:12px;
+    margin-bottom:15px;
+    font-size:16px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    background:white;
+}
+
+select:focus{
+    border-color:#d71920;
+    outline:none;
+}
+
+#resultado{
+    margin-top:20px;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+
+ul{
+    padding-left:20px;
+}
+
+li{
+    margin-bottom:8px;
+    font-size:16px;
+}
+
+@media(max-width:480px){
+
+h2{
+font-size:24px;
+}
+
+select{
+font-size:17px;
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Consulta de Muebles</h2>
+
+<select id="asesor">
+<option value="">Selecciona Asesor</option>
+</select>
+
+<select id="tienda">
+<option value="">Selecciona Tienda</option>
+</select>
+
+<select id="estatus">
+<option value="">Selecciona Estatus</option>
+</select>
+
+<div id="resultado"></div>
+
+<script>
+
+const URL_SHEET="https://opensheet.elk.sh/1ytERWvTvIeTxCiU7c6_Rt8opJ8XBn1VESqVgGZal7SU/Hoja%201";
+
+let datos=[];
+
+const asesor=document.getElementById("asesor");
+const tienda=document.getElementById("tienda");
+const estatus=document.getElementById("estatus");
+const resultado=document.getElementById("resultado");
+
+fetch(URL_SHEET)
+
+.then(res=>res.json())
+
+.then(data=>{
+
+datos=data;
+
+cargarAsesores();
+
+});
+
+function cargarAsesores(){
+
+const asesores=[...new Set(datos.map(x=>x.Asesor))];
+
+asesores.sort();
+
+asesores.forEach(a=>{
+
+let option=document.createElement("option");
+
+option.value=a;
+
+option.textContent=a;
+
+asesor.appendChild(option);
+
+});
+
+}
+
+asesor.addEventListener("change",()=>{
+
+tienda.innerHTML='<option value="">Selecciona Tienda</option>';
+
+estatus.innerHTML='<option value="">Selecciona Estatus</option>';
+
+resultado.innerHTML="";
+
+if(!asesor.value) return;
+
+const tiendas=[...new Set(
+
+datos
+
+.filter(x=>x.Asesor===asesor.value)
+
+.map(x=>x.Tienda)
+
+)];
+
+tiendas.sort();
+
+tiendas.forEach(t=>{
+
+let option=document.createElement("option");
+
+option.value=t;
+
+option.textContent=t;
+
+tienda.appendChild(option);
+
+});
+
+});
+
+tienda.addEventListener("change",()=>{
+
+estatus.innerHTML='<option value="">Selecciona Estatus</option>';
+
+resultado.innerHTML="";
+
+if(!tienda.value) return;
+
+const estatusLista=[...new Set(
+
+datos
+
+.filter(x=>
+
+x.Asesor===asesor.value &&
+
+x.Tienda===tienda.value
+
+)
+
+.map(x=>x.Estatus)
+
+)];
+
+estatusLista.sort();
+
+estatusLista.forEach(e=>{
+
+let option=document.createElement("option");
+
+option.value=e;
+
+option.textContent=e;
+
+estatus.appendChild(option);
+
+});
+
+});
+
+estatus.addEventListener("change",()=>{
+
+resultado.innerHTML="";
+
+if(!estatus.value) return;
+
+const muebles=datos.filter(x=>
+
+x.Asesor===asesor.value &&
+
+x.Tienda===tienda.value &&
+
+x.Estatus===estatus.value
+
+);
+
+if(muebles.length===0){
+
+resultado.innerHTML="<h3>No se encontraron registros.</h3>";
+
+return;
+
+}
+
+let html=`
+<div style="text-align:center;">
+<h3 style="color:#d71920;">📦 Mueble(s)</h3>
+</div>
+<ul>
+`;
+
+muebles.forEach(x=>{
+
+html+=`<li><strong>${x.Mueble}</strong></li>`;
+
+});
+
+html+="</ul>";
+
+resultado.innerHTML=html;
+
+});
+
+</script>
+
+</body>
+
+</html>
